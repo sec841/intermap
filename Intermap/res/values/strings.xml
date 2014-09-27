@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_id">581376651971597</string>
+    <string name="app_name">Intermap</string>
+    <string name="app_logo_name">INTERMAP</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="fb_login_button_name">Log in with Facebook</string>
+
+</resources>
