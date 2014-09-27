@@ -1,0 +1,53 @@
+
+=========
+= Login =
+=========
+
+- MainActivity (main login activity).
+	- SplashFragment 
+		- Action bar: Not visible.
+		- "Sign In" button (takes you to SignInFragment).
+		- "Register" button (takes you to RegisterFragment).
+	- SignInFragment
+		- Action bar: Visible.
+			- "Back" button (top left)
+			- "Sign In" button (top right)
+				- Confirms sign in using below details.
+		- Sign in with Facebook button.
+			- If not signed in already, takes you to FB login page.
+			- If already signed in, takes you to IntermapActivity.
+		- Email field
+		- Password field
+	- RegisterFragment 
+		- Action bar: Visible.
+			- Back button (top left)
+			- Next button (top right)
+		- Register with Facebook 
+			- When clicked, signs you into Facebook. 
+			- When signed in: 
+				- Button is renamed to "Linked to: John Doe"
+				- Email field is filled with Facebook login email.
+		...or...
+		- Email field
+		- Password field
+		- Confirm password field
+		- Accept terms of service check box.
+		- Next button => UserProfileFragment.
+	- UserProfileFragment
+		- Action bar: Visible.
+			- Back button.
+			- Register button (to complete registration). 
+				- Confirms registration and takes you to IntermapActivity.
+		- Display name
+		- Profile description
+		- Profile photo picker
+		- Gender
+		
+	 
+- IntermapActivity (main logged-in activity with top action bar)
+	- Action bar (lets you pick which fragment is displayed at the bottom or takes you to other activity).
+		- Interests button => InterestPickerFragment
+		- Profile button => ProfileFragment
+		- Chat button (check skout chat for good example).
+		- Nearby button
+		

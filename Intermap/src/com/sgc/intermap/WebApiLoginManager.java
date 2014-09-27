@@ -8,6 +8,13 @@ import com.facebook.Session;
 import com.facebook.SessionState;
 import com.facebook.UiLifecycleHelper;
 
+/**
+ Login helper.  
+ Equivalent to Facebook's UiLifecycleHelper but works with all 
+ other supported login schemes.
+ 
+ We should have one of these per activity.
+*/
 public class WebApiLoginManager {
 	
 	private OnSessionStateChangeListener _sessionStateChangeListener;
