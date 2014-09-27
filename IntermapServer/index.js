@@ -12,6 +12,9 @@ var LOGIN_STATUS_OK = "LOGIN_STATUS_OK";
 var LOGIN_STATUS_TOKEN_ERROR = "LOGIN_STATUS_TOKEN_ERROR";
 
 var FACEBOOK_APP_ID = "581376651971597";
+
+// TODO: THIS IS TEMPORARY FOR TESTING PURPOSES ONLY! 
+// The real app secret should be stored on the server in an external file and not committed to git.
 var FACEBOOK_APP_SECRET = "f54aa6ddb7beb86f5bc15581ba1fef87";
 
 // The facebook app token.
