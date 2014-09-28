@@ -4,16 +4,28 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
+
+    <fragment android:name="com.sgc.intermap.mainactivity.SplashFragment"
+          android:id="@+id/fragment_splash"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent" />
     
-    <fragment android:name="com.sgc.intermap.LoadingFragment"
+    <fragment android:name="com.sgc.intermap.mainactivity.LoadingFragment"
           android:id="@+id/fragment_loading"
           android:layout_width="match_parent"
           android:layout_height="match_parent" />
     
-    <fragment android:name="com.sgc.intermap.SplashFragment"
-          android:id="@+id/fragment_splash"
+    <fragment android:name="com.sgc.intermap.mainactivity.SignInFragment"
+          android:id="@+id/fragment_signin"
           android:layout_width="match_parent"
           android:layout_height="match_parent" />
+    
+    <fragment android:name="com.sgc.intermap.mainactivity.RegisterFragment"
+          android:id="@+id/fragment_register"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent" />
+    
+
 <!-- 
     <fragment android:name="com.facebook.widget.UserSettingsFragment"
           android:id="@+id/userSettingsFragment"

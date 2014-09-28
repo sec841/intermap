@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:intermap="http://schemas.android.com/apk/res-auto" >
+    <item android:id="@+id/action_register_next"
+          android:title="@string/com_sgc_registernext_menu_item_name"
+	      intermap:showAsAction="always"
+          />
+    
+    <!--     android:icon="@drawable/ic_action_accounts"        -->
+    
+</menu>

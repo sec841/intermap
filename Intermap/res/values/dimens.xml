@@ -6,6 +6,9 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="navigation_drawer_width">240dp</dimen>
     
+    <dimen name="com_sgc_text_field_bottom_margin">10dp</dimen>
+    <dimen name="com_sgc_mainactivity_button_width">250dp</dimen>
+    
     <dimen name="com_facebook_loginview_padding_left">12dip</dimen>
     <dimen name="com_facebook_loginview_padding_right">16dp</dimen>
     <dimen name="com_facebook_loginview_padding_top">12dp</dimen>

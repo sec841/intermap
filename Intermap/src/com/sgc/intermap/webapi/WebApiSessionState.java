@@ -1,4 +1,4 @@
-package com.sgc.intermap;
+package com.sgc.intermap.webapi;
 
 import com.facebook.SessionState;
 

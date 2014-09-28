@@ -1,10 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_id">581376651971597</string>
-    <string name="app_name">Intermap</string>
-    <string name="app_logo_name">INTERMAP</string>
-    <string name="title_activity_main">MainActivity</string>
-    <string name="fb_login_button_name">Log in with Facebook</string>
+    <string name="com_sgc_app_name">Intermap</string>
+    <string name="com_sgc_facebook_app_id">581376651971597</string>
+    
+    <!-- <string name="app_logo_name">INTERMAP</string> -->
+    <!-- string name="title_activity_main">MainActivity</string> -->
+    <string name="com_sgc_signin_button_name">Sign in</string>
+    <string name="com_sgc_register_button_name">Register</string>
+    <string name="com_sgc_register_actionbar_title">Register</string>
+    <string name="com_sgc_signin_actionbar_title">Sign in</string>
+    
+    <string name="com_sgc_signin_menu_item_name">Sign in</string>
+    <string name="com_sgc_registernext_menu_item_name">Next</string>
+    <string name="com_sgc_registerconfirm_menu_item_name">Register</string>
+    
+    <string name="com_sgc_facebook_login_button_name">Sign in with Facebook</string>
 
+    
 </resources>

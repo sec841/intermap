@@ -1,4 +1,4 @@
-package com.sgc.intermap;
+package com.sgc.intermap.webapi;
 
 import java.io.UnsupportedEncodingException;
 
@@ -18,29 +18,40 @@ public final class WebApiRestClient {
 	private static String CONTENT_TYPE = "application/json";
 	private AsyncHttpClient _httpClient;
 
+	//-------------------------------------------------------------------------
+	//
 	public WebApiRestClient() {
 		_httpClient = new AsyncHttpClient();
 		_httpClient.addHeader("content-type", "application/json"); 
 	}
 	
+	//-------------------------------------------------------------------------
+	//
 	public void get(
 			Context context,
 			String relativeUrl, 
 			RequestParams params, 
 			AsyncHttpResponseHandler responseHandler) {
-		_httpClient.get(context, getAbsoluteUrl(relativeUrl), params, responseHandler);
+		_httpClient.get(context, getAbsoluteUrl(relativeUrl), 
+				params, responseHandler);
 	}
 
+	//-------------------------------------------------------------------------
+	//
 	public void post(
 			Context context,
 			String relativeUrl, 
 			JSONObject jsonParams,  
-			AsyncHttpResponseHandler responseHandler) throws UnsupportedEncodingException {
+			AsyncHttpResponseHandler responseHandler) 
+					throws UnsupportedEncodingException {
         StringEntity entity = new StringEntity(jsonParams.toString());
 		_httpClient.post(
-				context, getAbsoluteUrl(relativeUrl), entity, CONTENT_TYPE, responseHandler); 
+				context, getAbsoluteUrl(relativeUrl), 
+				entity, CONTENT_TYPE, responseHandler); 
 	}
 
+	//-------------------------------------------------------------------------
+	//
 	private static String getAbsoluteUrl(String relativeUrl) {
 		return BASE_URL + relativeUrl;
 	}

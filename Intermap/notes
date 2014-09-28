@@ -51,3 +51,58 @@
 		- Chat button (check skout chat for good example).
 		- Nearby button
 		
+		
+		
+===============
+
+		/*
+
+		Session session = Session.getActiveSession();
+		if(session.isOpened())
+		{
+			// make the API call 
+			new Request(
+					session,
+					"/me/interests",
+					null,
+					HttpMethod.GET,
+					new Request.Callback() {
+						public void onCompleted(Response response) {
+							// handle the result 
+							GraphObject obj = response.getGraphObject();
+							
+							Map<String, Object> map = obj.asMap();
+							
+							for(String key : map.keySet())
+							{
+								Object value = map.get(key);
+								if(value instanceof String)
+								{
+									Log.i(TAG, "key: "+key + " value: "+(String)value);
+								}
+								else
+								{
+									Log.i(TAG, "key: "+key);
+								}
+							}
+							
+							// TODO not sure
+							GraphObjectList<GraphObject> list = 
+									response.getGraphObjectList();
+
+							if( list != null )
+							{
+								for(GraphObject graphObject : list)
+								{
+									String about = (String)graphObject.getProperty("about");
+									String category = (String)graphObject.getProperty("category");
+									//CoverPhoto photo = (CoverPhoto)graphObject.getProperty("coverO");
+								}
+							}
+						}
+					}
+					).executeAndWait();
+
+		}
+		
+		*/

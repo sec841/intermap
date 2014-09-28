@@ -1,4 +1,4 @@
-package com.sgc.intermap;
+package com.sgc.intermap.webapi;
 
 
 import com.facebook.Session;
@@ -11,7 +11,8 @@ public class WebApiSession {
 	// Facebook session (if any).
 	private Session _fbSession;
 	
-	
+	//-------------------------------------------------------------------------
+	//
 	public WebApiSession() 
 	{
 		_fbSession = Session.getActiveSession();
@@ -22,27 +23,37 @@ public class WebApiSession {
 		}
 	}
 	
+	//-------------------------------------------------------------------------
+	//
 	public boolean isOpened()
 	{
 		return _state.isOpened();
 	}
 	
+	//-------------------------------------------------------------------------
+	//
 	public boolean isClosed()
 	{
 		return _state.isClosed();
 	}
 	
+	//-------------------------------------------------------------------------
+	//
 	public WebApiSessionState getState()
 	{
 		return _state;
 	}
 	
+	//-------------------------------------------------------------------------
+	//
 	public void setFacebookSession(Session fbSession)
 	{
 		_fbSession = fbSession;
 		_state.setFacebookSessionState( fbSession.getState() );
 	}
 	
+	//-------------------------------------------------------------------------
+	//
 	public String getAccessToken() {
 		if( _fbSession != null ) 
 			return _fbSession.getAccessToken();
@@ -50,6 +61,8 @@ public class WebApiSession {
 	}
 
 	/*
+    //-------------------------------------------------------------------------
+	//
 	public void onActivityResult(
 			Activity currentActivity, 
 			int requestCode, 
@@ -62,12 +75,16 @@ public class WebApiSession {
 	}
 	*/
 	
+	//-------------------------------------------------------------------------
+	//
 	public void close() {
 		_fbSession.closeAndClearTokenInformation();
 		_fbSession = null;
 	}
 	
 	/*
+	//-------------------------------------------------------------------------
+	//
 	public void setFacebookSessionState(SessionState fbSessionState)
 	{
 		_state.setFacebookSessionState( fbSessionState );
