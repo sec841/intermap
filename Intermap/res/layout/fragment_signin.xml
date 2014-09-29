@@ -19,7 +19,7 @@
 	        android:layout_gravity="center_horizontal"
 	        android:layout_marginBottom="30dp"
 	        android:layout_marginTop="30dp"
-	        android:onClick="onClickFacebookLogin"
+	        android:onClick="onClickFacebookSignIn"
 	        android:text="@string/com_sgc_facebook_login_button_name" />
     </LinearLayout>
     
@@ -36,7 +36,8 @@
             android:layout_height="wrap_content"
             android:ems="10"
             android:hint="Email"
-            android:inputType="textEmailAddress" >
+            android:inputType="textEmailAddress"
+            android:layout_marginBottom="@dimen/com_sgc_text_field_bottom_margin" >
 
             <requestFocus />
         </EditText>
@@ -47,13 +48,15 @@
             android:layout_height="wrap_content"
             android:ems="10"
             android:hint="Password"
-            android:inputType="textPassword" />
+            android:inputType="textPassword"
+            android:layout_marginBottom="@dimen/com_sgc_text_field_bottom_margin" />
 
         <Button
             android:id="@+id/button1"
             android:layout_width="@dimen/com_sgc_mainactivity_button_width"
             android:layout_height="wrap_content"
-            android:text="Sign in with Intermap" />
+            android:text="Sign in with Intermap" 
+            android:layout_marginBottom="@dimen/com_sgc_text_field_bottom_margin"/>
 
 	</LinearLayout>    
     <!--

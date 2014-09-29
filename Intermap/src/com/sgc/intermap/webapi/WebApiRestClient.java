@@ -18,11 +18,16 @@ public final class WebApiRestClient {
 	private static String CONTENT_TYPE = "application/json";
 	private AsyncHttpClient _httpClient;
 
+	private PersistentCookieStore _cookieStore;
+	
 	//-------------------------------------------------------------------------
 	//
-	public WebApiRestClient() {
+	public WebApiRestClient(PersistentCookieStore cookieStore) {
 		_httpClient = new AsyncHttpClient();
 		_httpClient.addHeader("content-type", "application/json"); 
+		_cookieStore = cookieStore;
+		
+		_httpClient.setCookieStore( _cookieStore );
 	}
 	
 	//-------------------------------------------------------------------------

@@ -75,11 +75,11 @@ public class WebApiLoginManager {
 	
 	//-------------------------------------------------------------------------
 	//
-    public void loginFacebook() {
+    /*public void facebookLogin() {
     	// start Facebook login workflow
     	_fbUiHelper = new UiLifecycleHelper(_activity, _fbSessionStatusCb);
     	Session.openActiveSession(_activity, true, _fbSessionStatusCb);
-    }
+    }*/
     
 	//-------------------------------------------------------------------------
 	//

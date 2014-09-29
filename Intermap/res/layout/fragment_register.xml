@@ -3,11 +3,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
+    <!-- TODO: Change this to ScrollView -->
     
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.40"
+        android:layout_weight="0.50"
         android:gravity="center"
         android:orientation="vertical" >
 
@@ -25,7 +26,7 @@
 	        android:layout_gravity="center_horizontal"
 	        android:layout_marginBottom="15dp"
 	        android:layout_marginTop="15dp"
-	        android:onClick="onClickFacebookLogin"
+	        android:onClick="onClickFacebookRegister"
 	        android:text="Register with Facebook" />
 
 	    <TextView
@@ -35,15 +36,24 @@
 	        android:capitalize="characters"
 	        android:gravity="center"
 	        android:text="Don&apos;t worry. We will never post to your timeline without your permission." />
-
+        <TextView
+            android:id="@+id/TextView02"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:capitalize="characters"
+            android:gravity="center"
+            android:text="-- OR --" 
+             android:layout_marginTop="15dp" />
     </LinearLayout>
     
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.70"
+        android:layout_weight="0.50"
         android:gravity="center"
         android:orientation="vertical" >
+
+
 
         <EditText
             android:id="@+id/txtRegisterEmail"

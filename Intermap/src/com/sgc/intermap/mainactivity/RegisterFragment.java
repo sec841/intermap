@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.sgc.intermap.FacebookHelper;
 import com.sgc.intermap.R;
 
 public class RegisterFragment extends Fragment {
@@ -30,26 +31,8 @@ public class RegisterFragment extends Fragment {
 				container, false);	   
 
 		setHasOptionsMenu(true);
-		//btnFacebookRegister
-		
 		_fbRegisterButton = (Button)view.findViewById(R.id.btnFacebookRegister);
-		
-	    // TODO: Put this in FacebookHelper
-		_fbRegisterButton.setBackgroundResource(
-	    		R.drawable.com_facebook_button_blue);
-		_fbRegisterButton.setCompoundDrawablesWithIntrinsicBounds(
-	    		R.drawable.com_facebook_inverse_icon, 0, 0, 0);
-		_fbRegisterButton.setCompoundDrawablePadding(
-                getResources().getDimensionPixelSize(
-                		R.dimen.com_facebook_loginview_compound_drawable_padding));
-		_fbRegisterButton.setPadding(getResources().getDimensionPixelSize(
-	    		R.dimen.com_facebook_loginview_padding_left),
-                getResources().getDimensionPixelSize(
-                		R.dimen.com_facebook_loginview_padding_top),
-                getResources().getDimensionPixelSize(
-                		R.dimen.com_facebook_loginview_padding_right),
-                getResources().getDimensionPixelSize(
-                		R.dimen.com_facebook_loginview_padding_bottom));
+		FacebookHelper.setFacebookButtonStyle(this.getActivity(), _fbRegisterButton);
 		
 		return view;
 	}

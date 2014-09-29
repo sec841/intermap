@@ -10,6 +10,7 @@ var bl = require('bl'); // https://github.com/rvagg/bl
 
 var LOGIN_STATUS_OK = "LOGIN_STATUS_OK";
 var LOGIN_STATUS_TOKEN_ERROR = "LOGIN_STATUS_TOKEN_ERROR";
+var LOGIN_STATUS_UNKNOWN_CREDENTIALS = "LOGIN_STATUS_UNKNOWN_CREDENTIALS";
 
 var FACEBOOK_APP_ID = "581376651971597";
 
@@ -22,10 +23,82 @@ var FACEBOOK_APP_SECRET = "f54aa6ddb7beb86f5bc15581ba1fef87";
 // TODO: Refresh this token every X hours.
 fbAppToken = undefined;
 
+//-----------------------------------------------------------------------------
+// Links facebook IDs to Intermap IDs.
+var facebookIdMap = {
+		10154602565895392 : 1,
+		10154499884250392 : 2
+};
+
+// TODO: Put this in database.
+// TODO: In the mongo DB, we can put everything in a single json object 
+// and setup an index on facebook_id or normal_id
+var users = {
+	    1: {
+	        email: 'cotegu@gmail.com',
+	        password: '123', // TODO: Use bcrypt here
+	        name: 'Guillaume',
+	        facebook_id: 10154602565895392
+	    },
+	    2: {
+	        email: 'zemustain@msn.com',
+	        password: '123', // TODO: Use bcrypt here
+	        name: 'Sebastien',
+	        facebook_id: 10154499884250392
+	    }
+	};
+
+//-----------------------------------------------------------------------------
+//
+/*
+var login = function (request, reply) {
+
+    if (request.auth.isAuthenticated) {
+    	// Already authenticated.
+    	// TODO: No redirect.
+        return reply({loginStatus : "OK"});
+    }
+
+    var message = '';
+    var account = null;
+
+    if (request.method === 'post') {
+
+        if (!request.payload.username ||
+            !request.payload.password) {
+        	// TODO: Check facebook access here.
+            message = 'Missing username or password';
+        }
+        else {
+            account = users[request.payload.username];
+            if (!account ||
+                account.password !== request.payload.password) {
+
+                message = 'Invalid username or password';
+            }
+        }
+    }
+    
+    if (request.method === 'get' ||
+        message) {
+
+        return reply('<html><head><title>Login page</title></head><body>'
+            + (message ? '<h3>' + message + '</h3><br/>' : '')
+            + '<form method="post" action="/login">'
+            + 'Username: <input type="text" name="username"><br>'
+            + 'Password: <input type="password" name="password"><br/>'
+            + '<input type="submit" value="Login"></form></body></html>');
+    }
+    
+
+    request.auth.session.set(account);
+    return reply.redirect('/');
+};
+*/
 
 
-
-
+//-----------------------------------------------------------------------------
+//
 // Retrieve the app token for this app from Facebook. 
 // Callback takes two parameters: err and token.
 // TODO: Refresh this token regularly in case it expires (but it shouldn't!).
@@ -60,6 +133,8 @@ function getFacebookAppToken(callback) {
 	});
 }
 
+//-----------------------------------------------------------------------------
+//
 // Validates a facebook user token.
 function checkFacebookUserToken(userToken, callback) {
 	var fbUrl = url.parse("https://graph.facebook.com/debug_token");
@@ -97,16 +172,31 @@ function checkFacebookUserToken(userToken, callback) {
 /* 
  * Hapi server setup. 
  */
+// TODO: Make server IP configurable.
  var server = Hapi.createServer('192.168.0.14', port);
+
+
+//-----------------------------------------------------------------------------
+// HANDLERS
+//-----------------------------------------------------------------------------
  
- var loginRouteConfig = {
-	payload : {
-		output: 'data',
-		parse: true,
-		allow: 'application/json'
-	}
-}
  
+//-----------------------------------------------------------------------------
+//
+var logoutHandler = function (request, reply) {
+	// TODO: Check if user is logged in / known.
+     request.auth.session.clear();
+     return reply({logoutStatus : "OK"});
+};
+ 
+//-----------------------------------------------------------------------------
+//
+ var testHandler = function (request, reply) {
+	 reply({hello:"Hello " + request.auth.credentials.name});
+};
+ 
+//-----------------------------------------------------------------------------
+//
  function facebookLoginHandler(request, reply) { 
 	if(!request.payload.hasOwnProperty('access_token')) {
 		// TODO: Properly log errors with IP addresses and all.
@@ -139,6 +229,7 @@ function checkFacebookUserToken(userToken, callback) {
 		// TODO: Test these errors
 		data = data.data;
 		
+		// Check that the token is valid and for our app.
 		if(!data.is_valid || data.app_id != FACEBOOK_APP_ID) {
 			console.error(data);
 			response.source = {
@@ -149,7 +240,32 @@ function checkFacebookUserToken(userToken, callback) {
 			return response.send();
 		}
 		
+		// Now, check that the token is for a known user.
+		var account = null;
+		var fbUserId = data.user_id;
+		if( fbUserId && !isNaN(fbUserId) ) {
+			fbUserId = parseInt(fbUserId);
+			var uid = facebookIdMap[fbUserId];
+			if(uid) {
+				account = users[uid];
+			}
+		}
+		
+		if(!account) {
+			console.error("Unknown user_id:\n");
+			console.error(data);
+			response.source = {
+				loginStatus : LOGIN_STATUS_UNKNOWN_CREDENTIALS, 
+				"error" : "Unknown credentials."
+			};
+			response.statusCode = 401;
+			return response.send();
+		} 
+		
 		// TODO : Check expiration value?
+		// TODO :  Check user ID
+	    request.auth.session.set(account);
+
 
 		// Token is valid.
 		// TODO: Save session into redis?
@@ -159,13 +275,29 @@ function checkFacebookUserToken(userToken, callback) {
 		
 }
  
-server.route({
-	path: '/login/facebook',
-	method: 'POST',
-	config: loginRouteConfig,
-	handler: facebookLoginHandler
-});
+//-----------------------------------------------------------------------------
+//
+var facebookLoginRouteConfig = {
+	payload : {
+		output: 'data',
+		parse: true,
+		allow: 'application/json'
+	},
+    auth: {
+        mode: 'try',
+        strategy: 'session'
+    },
+    plugins: {
+        'hapi-auth-cookie': {
+            redirectTo: false
+        }
+    }
+};
+		
 
+
+//-----------------------------------------------------------------------------
+//
 function initServer() {
 	console.log("Obtaining facebook app token...");
 	getFacebookAppToken(function (err, token) {
@@ -183,7 +315,56 @@ function initServer() {
 
 }
 
+//-----------------------------------------------------------------------------
+//
+server.pack.register(require('hapi-auth-cookie'), function (err) {
+
+    if (err) {
+        throw err; // something bad happened loading the plugin
+    }
+	
+    server.auth.strategy('session', 'cookie', {
+        password: 'secret', // used for Iron cookie encoding.
+        cookie: 'sid', // the cookie name. Defaults to 'sid'.
+        //redirectTo: false, 
+        isSecure: false // if false, the cookie is allowed to be transmitted over insecure connections which exposes it to attacks. Defaults to true.
+        // TODO: isSecure should be true!
+    });
+    
+	//-----------------------------------------------------------------------------
+	// ROUTES
+	//-----------------------------------------------------------------------------
+	
+	server.route({
+	  	path: '/logout',
+	  	method: 'POST',
+	    config: {
+	     	handler: logoutHandler,
+	        auth: 'session'
+	     }
+	});
+	
+	
+	server.route({
+	  	path: '/login/facebook',
+	  	method: 'POST',
+	  	config: facebookLoginRouteConfig,
+	  	handler: facebookLoginHandler
+	});
+	
+	
+	server.route({
+	 	method: 'GET',
+	    path: '/test',
+	    config: {
+	     	handler: testHandler,
+	        auth: 'session'
+	    }
+	});
+
+    initServer();
+});
 // Initialize the server and start it.
 // TODO: This server should be https!
-initServer();
+
 
