@@ -46,5 +46,5 @@ function initServer(pluginError) {
 server.pack.register(require('hapi-auth-cookie'), initServer);
 // Initialize the server and start it.
 // TODO: This server should be https!
-
+//
 
