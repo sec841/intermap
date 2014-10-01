@@ -24,8 +24,6 @@ public class WebApiService extends Service {
 
 	private static final String TAG = "WebApiService";
 
-	//private boolean _isLoggedInPlatform;
-
 	private WebApiServiceBinder _binder;
 
 	private PersistentCookieStore _cookieStore;
@@ -35,7 +33,8 @@ public class WebApiService extends Service {
 
 	public interface OnSignInStateChangeListener {
 		
-		public void onSignInStateChange(Throwable exception);
+		public void onSignInStateChange(
+				JSONObject response, Throwable exception);
 		
 	}
 	
@@ -46,7 +45,7 @@ public class WebApiService extends Service {
 	public WebApiService() {
 		super();
 		
-		_client = new WebApiRestClient( _cookieStore );
+		_client = new WebApiRestClient();
 		_binder = new WebApiServiceBinder();
 	}
 	
@@ -62,7 +61,9 @@ public class WebApiService extends Service {
 	//
 	@Override
 	public IBinder onBind(Intent intent) {
-		_cookieStore = new PersistentCookieStore(this);
+		Context context = this.getApplicationContext();
+		_cookieStore = new PersistentCookieStore(context);
+		_client.setCookieStore(_cookieStore);
 		return _binder;
 	}
 
@@ -71,6 +72,7 @@ public class WebApiService extends Service {
 	@Override
 	public boolean onUnbind(Intent intent) {
 		_cookieStore = null;
+		_client.setCookieStore(null);
 		return super.onUnbind(intent);
 	}
 
@@ -115,6 +117,35 @@ public class WebApiService extends Service {
 		_cookieStore.clear();
 	}
 
+	
+	// Test request to validate if we are authenticated.
+	// TODO: Move this to unit test class.
+	private void testRequest() {
+		this._cookieStore.clear();
+		@SuppressWarnings("unused")
+		boolean loggedIn = this.isLoggedIn();
+		Context context = this.getApplicationContext();
+		
+		_client.get(context, "test", null, new JsonHttpResponseHandler() { 
+			@Override
+			public void onSuccess(int statusCode, 
+					Header[] headers, 
+					JSONObject response) {
+				Log.i(TAG, "test response = " + response);
+			}
+			
+
+			@Override
+			public void onFailure(
+				int statusCode,
+				Header[] headers,
+				Throwable throwable,
+				JSONObject errorResponse) {
+				Log.i(TAG, "test error response = " + errorResponse);
+			}
+		});
+	}
+	
 	//-------------------------------------------------------------------------
 	//
 	public void facebookLogin(Session fbSession) 
@@ -125,14 +156,6 @@ public class WebApiService extends Service {
 			// TODO Throw PlatformLoginException ?
 		}
 
-		// TODO: WebApiLoginManager.getActiveSession();
-		// TODO: Do not keep reference of session here.
-		//_session = session;
-
-
-		//if(_session.isOpened()) {
-		//_session = session;
-
 		String accessToken = fbSession.getAccessToken();
 		//Log.i(TAG, "Access token: " + accessToken);
 
@@ -140,8 +163,8 @@ public class WebApiService extends Service {
 		jsonParams.put("access_token", accessToken);
 
 		Context context = this.getApplicationContext();
-
-		// TODO: Pick different endpoint based on different auth type.
+		
+		// TODO: Pick different endpoint based on different auth type.		
 		_client.post(context, "login/facebook", 
 				jsonParams, new JsonHttpResponseHandler() {
 			@Override
@@ -149,15 +172,11 @@ public class WebApiService extends Service {
 					int statusCode, 
 					Header[] headers, 
 					JSONObject response) {
-				// If the response is JSONObject 
-				// instead of expected JSONArray
-				// [content-type: application/json; charset=utf-8, set-cookie: sid=Fe26.2**4de8c977a3c18a4be004c6fa4c80c66507a548372e49b2a86f7fb1911fcb14bb*lvM_gamvR1FDJN4TA4QoVA*kmaX-CGoCID7z6aguCIbhXJBmJeoZzBxZuOb1cCNk_Hvo67PZOMizwNPhEzOT-YbGDz_MU3hmwAw3XpBOdXLOL3PiDICNOwiW7MlCyIo_VIsuTlBjeAFzTSIwn9zJkDKz_IWJNpZVYzRKF8-U1utuA**1daee8db38f1932fd17b58a35f68ecf7c9f22b9b6e53585649c3201ccc3523ee*98LQ12ttV811Yer8bRaWDgfSDD2-NElk3LOfigAVBt8; HttpOnly; Path=/, cache-control: no-cache, content-encoding: gzip, vary: accept-encoding, Date: Sun, 28 Sep 2014 21:41:03 GMT, Connection: keep-alive, Transfer-Encoding: chunked]
+
 				if(_signInChangeListener != null)
-					_signInChangeListener.onSignInStateChange(null);
+					_signInChangeListener.onSignInStateChange(response, null);
 
 				Log.i(TAG, "response = " + response.toString());
-				// TODO: Platform login callback.
-
 			}
 
 			//-------------------------------------------------------------
@@ -165,13 +184,13 @@ public class WebApiService extends Service {
 			@Override
 			public void onFailure(
 					int statusCode,
-					org.apache.http.Header[] headers,
-					java.lang.Throwable throwable,
-					org.json.JSONObject errorResponse)
-			{
+					Header[] headers,
+					Throwable throwable,
+					JSONObject errorResponse) {
+				
 				if(_signInChangeListener != null)
-					_signInChangeListener.onSignInStateChange(throwable);
-				// errorResponse will be null if connection failed!
+					_signInChangeListener.onSignInStateChange(errorResponse, throwable);
+				// TODO: errorResponse will be null if connection failed!
 				Log.e(TAG, "Connection failed: " + throwable.toString());
 			}
 
@@ -185,7 +204,6 @@ public class WebApiService extends Service {
 			}
 
 		});
-		//}
 
 	}
 

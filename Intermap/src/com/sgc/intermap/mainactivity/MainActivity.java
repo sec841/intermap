@@ -1,8 +1,6 @@
 package com.sgc.intermap.mainactivity;
 
-import java.io.UnsupportedEncodingException;
-
-import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -18,7 +16,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
@@ -28,11 +25,8 @@ import com.facebook.SessionState;
 import com.facebook.UiLifecycleHelper;
 import com.sgc.intermap.R;
 
-import com.sgc.intermap.webapi.WebApiLoginManager;
 import com.sgc.intermap.webapi.WebApiService;
 import com.sgc.intermap.webapi.WebApiService.OnSignInStateChangeListener;
-import com.sgc.intermap.webapi.WebApiSession;
-import com.sgc.intermap.webapi.WebApiLoginManager.OnSessionStateChangeListener;
 import com.sgc.intermap.webapi.WebApiService.WebApiServiceBinder;
 
 public class MainActivity extends ActionBarActivity 
@@ -395,11 +389,13 @@ public class MainActivity extends ActionBarActivity
 		Session fbSession = Session.getActiveSession();
 		if(fbSession != null && fbSession.isOpened()) {
 			// Already logged in.  Trigger the callback to log into the platform. TODO: call _webService.facebookLogin() here directly!
-			onFacebookSessionStateChange(fbSession, fbSession.getState(), null);
+			onFacebookSessionStateChange(
+					fbSession, fbSession.getState(), null);
 		}
 		else {
 			// Open a new session (this will show the Facebook login UI).
-			Session.openActiveSession(this, true, _fbSessionStatusCb);
+			Session.openActiveSession(
+					this, true, _fbSessionStatusCb);
 		}
 	}
 
@@ -412,7 +408,8 @@ public class MainActivity extends ActionBarActivity
 	// -------------------------------------------------------------------------
 	// TODO Call this
 	private boolean isOnline() {
-		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(
+				Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isConnected();
 	}
@@ -441,15 +438,20 @@ public class MainActivity extends ActionBarActivity
 		}
 	}
 
+	// -------------------------------------------------------------------------
+	//	
 	@Override
-	public void onSignInStateChange(Throwable exception) {
-		// TODO Auto-generated method stub
+	public void onSignInStateChange(JSONObject response, Throwable exception) {
 		if(exception == null)
 			Toast.makeText(this.getApplicationContext(), "Signed in!",
 					Toast.LENGTH_LONG).show();
+			// TODO: Launch IntermapActivity.
 		else {
 			Toast.makeText(this.getApplicationContext(), "Could not sign in!",
 					Toast.LENGTH_LONG).show();
+			
+			// Go back to Splash screen.
+			showFragment(FRAGMENT_INDEX_SPLASH, false);
 		}
 	}
 }
