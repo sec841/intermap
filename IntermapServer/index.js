@@ -2,17 +2,19 @@
  * Main javascript file for intermap server.
  */
 
-var port = parseInt(process.argv[2] || 8080);
+var Config = require('./config');
+var Login = require("./login");
+var Data = require("./data");
 var Hapi = require('hapi');
-var Login = require("./login.js");
+
+var port = parseInt(process.argv[2] || Config.server.default_port);
 
 var TAG = "INDEX:";
 
 /* 
  * Hapi server setup. 
  */
-// TODO: Make server IP configurable.
- var server = Hapi.createServer('192.168.0.14', port);
+ var server = Hapi.createServer(Config.server.hostname, port);
 
 //-----------------------------------------------------------------------------
 // HANDLERS
@@ -34,6 +36,15 @@ function initServer(pluginError) {
 			console.error(TAG, "FATAL ERROR: Could not start server.");
 			process.exit(1);
 		}
+		
+		Data.init(function(err) {
+			if(err) {
+				console.error(TAG, err);
+				console.error(TAG, "FATAL ERROR: Could not connect to mongodb database.");
+				process.exit(1);
+			}
+		});
+
 		
 		// Login initialization completed.
 		// Start the server.

@@ -4,52 +4,11 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
     <!-- TODO: Change this to ScrollView -->
-    
+        
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.50"
-        android:gravity="center"
-        android:orientation="vertical" >
-
-        <TextView
-            android:id="@+id/TextView01"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:capitalize="characters"
-            android:text="Link your account to your Facebook profile." />
-	    <Button
-	        android:id="@+id/btnFacebookRegister"
-	        style="@style/com_facebook_loginview_default_style"
-	        android:layout_width="@dimen/com_sgc_mainactivity_button_width"
-	        android:layout_height="wrap_content"
-	        android:layout_gravity="center_horizontal"
-	        android:layout_marginBottom="15dp"
-	        android:layout_marginTop="15dp"
-	        android:onClick="onClickFacebookRegister"
-	        android:text="Register with Facebook" />
-
-	    <TextView
-	        android:id="@+id/text_id"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:capitalize="characters"
-	        android:gravity="center"
-	        android:text="Don&apos;t worry. We will never post to your timeline without your permission." />
-        <TextView
-            android:id="@+id/TextView02"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:capitalize="characters"
-            android:gravity="center"
-            android:text="-- OR --" 
-             android:layout_marginTop="15dp" />
-    </LinearLayout>
-    
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.50"
+        android:layout_weight="0.40"
         android:gravity="center"
         android:orientation="vertical" >
 
@@ -85,14 +44,60 @@
             android:inputType="textPassword" 
             android:layout_marginBottom="@dimen/com_sgc_text_field_bottom_margin"/>
 
-        <Button
-            android:id="@+id/btnRegisterNext"
-            android:layout_width="@dimen/com_sgc_mainactivity_button_width"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/com_sgc_text_field_bottom_margin"
-            android:text="Next" />
-
 	</LinearLayout>    
+	
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.60"
+        android:gravity="center"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/TextView01"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:capitalize="characters"
+            android:gravity="center_horizontal"
+            android:text="Link your account to your Facebook profile (recommended)." />
+
+	    <Button
+	        android:id="@+id/btnLinkToFacebook"
+	        style="@style/com_facebook_loginview_default_style"
+	        android:layout_width="@dimen/com_sgc_mainactivity_button_width"
+	        android:layout_height="wrap_content"
+	        android:layout_gravity="center_horizontal"
+	        android:layout_marginBottom="15dp"
+	        android:layout_marginTop="15dp"
+	        android:onClick="onClickLinkToFacebook"
+	        android:text="Link to Facebook" />
+
+	    <TextView
+	        android:id="@+id/text_id"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:capitalize="characters"
+	        android:gravity="center"
+	        android:text="Don&apos;t worry. We will never post to your timeline without your permission." />
+        
+        
+        <!--<TextView
+            android:id="@+id/TextView02"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:capitalize="characters"
+            android:gravity="center"
+            android:text="..OR.." 
+             android:layout_marginTop="15dp" />-->
+	    
+	    <Button
+	        android:id="@+id/btnRegisterNext"
+	        android:layout_width="@dimen/com_sgc_mainactivity_button_width"
+	        android:layout_height="wrap_content"
+	        android:layout_marginBottom="@dimen/com_sgc_text_field_bottom_margin"
+	        android:text="Next" />
+
+    </LinearLayout>
     <!--
     <com.facebook.widget.LoginButton
             android:id="@+id/login_button"

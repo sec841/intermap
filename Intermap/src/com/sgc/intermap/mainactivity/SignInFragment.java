@@ -7,9 +7,12 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 
+import com.facebook.Session;
 import com.sgc.intermap.FacebookHelper;
 import com.sgc.intermap.R;
 
@@ -18,6 +21,9 @@ public class SignInFragment extends Fragment {
 	private static final String TAG = "SignInFragment";
 
 	private Button _fbLoginButton;
+	//private Button _basicLoginButton;
+	private EditText _txtEmail;
+	private EditText _txtPassword;
 
 	//-------------------------------------------------------------------------
 	//
@@ -33,9 +39,15 @@ public class SignInFragment extends Fragment {
 	    //_loginManager = ((MainActivity)getActivity()).getLoginManager();
 		
 		setHasOptionsMenu(true);
-	    _fbLoginButton = (Button)view.findViewById(R.id.btnFacebookLogin);
-	    //authBuOtton.setFragment(this);
+	    _fbLoginButton = (Button)view.findViewById(R.id.btnFacebookSignIn);
+	    //_basicLoginButton = (Button)view.findViewById(R.id.btnBasicSignIn);
 	    
+	    _txtEmail = (EditText)view.findViewById(R.id.txtEmail);
+	    _txtPassword = (EditText)view.findViewById(R.id.txtPassword);
+	 
+	    
+	    //authBuOtton.setFragment(this);
+	    // TODO:
 	    //Log.i(TAG, "Asking for Facebook permissions...");
 	    
 	    // Ask for permissions.
@@ -70,4 +82,17 @@ public class SignInFragment extends Fragment {
 	    super.onCreateOptionsMenu(menu, inflater);
 	}
 
+	//-------------------------------------------------------------------------
+	//
+	protected String getEmail() {
+		return _txtEmail.getText().toString();
+	}
+
+	//-------------------------------------------------------------------------
+	//
+	protected String getPassword() {
+		return _txtPassword.getText().toString();
+	}
+
+	
 }

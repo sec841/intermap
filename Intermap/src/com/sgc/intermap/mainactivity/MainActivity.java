@@ -142,6 +142,7 @@ public class MainActivity extends ActionBarActivity
 	protected void onStart() {
 		super.onStart();
 		// Bind to WebApiService
+		// TODO: Bind the service to the application context
 		Intent intent = new Intent(this, WebApiService.class);
 		bindService(intent, _connection, Context.BIND_AUTO_CREATE);
 	}
@@ -238,78 +239,32 @@ public class MainActivity extends ActionBarActivity
 			Session fbSession,
 			SessionState fbSessionState, 
 			Exception exception) {
-		if (_isResumed && !_fragments[FRAGMENT_INDEX_SIGN_IN].isHidden()) {
-			if(fbSessionState.isOpened()) {
+		if (_isResumed) {
+			if(!_fragments[FRAGMENT_INDEX_SIGN_IN].isHidden() && 
+					fbSessionState.isOpened()) {
 				try {
+					if (!_webServiceBound) {
+						// TODO: use string resource.
+						throw new AssertionError(
+								"WebApiService must be bound to MainActivity.");
+					}
 					_webService.facebookLogin(fbSession);
 					showFragment(FRAGMENT_INDEX_LOADING, false);
 				} catch (Exception ex) {
-					Log.e(TAG, "Facebook login failed.", ex);
+					String msg = "Facebook login failed.";
+					Log.e(TAG, msg, ex);
+					showToast(msg);
 				}
+			}
+			else if(!_fragments[FRAGMENT_INDEX_REGISTER].isHidden() && 
+					fbSessionState.isOpened()) {
+				// Rename FB button.
+				RegisterFragment f = 
+						(RegisterFragment)_fragments[FRAGMENT_INDEX_REGISTER];
+				f.getLinkToFacebookButton().setText("Linked to: <account name>");
 			}
 		}
 	}
-
-	// -------------------------------------------------------------------------
-	//
-	/*
-	@Override
-	public void onSessionStateChange(WebApiSession session) {
-
-		// Only make changes if the activity is visible
-		if (_isResumed) {
-			FragmentManager manager = getSupportFragmentManager();
-
-			// Get the number of entries in the back stack
-			// TODO: Is this required???
-			int backStackSize = manager.getBackStackEntryCount();
-
-			// Clear the back stack
-			for (int i = 0; i < backStackSize; i++) {
-				manager.popBackStack();
-			}
-
-			if (!isOnline()) {
-				String msg = "No network connectivity available.";
-				Log.e(TAG, msg);
-				// TODO showFragment(NOCONNECTION, false);
-				showFragment(FRAGMENT_INDEX_SPLASH, false);
-				// TODO: Use resource.
-				Toast.makeText(this.getApplicationContext(), msg,
-						Toast.LENGTH_SHORT).show();
-			} else if (_webService != null && _webService.isLoggedInPlatform()) {
-				// TODO: session.isPlatformConnected()
-				// Show main application screen.
-				showFragment(FRAGMENT_INDEX_LOADING, false);
-			} else if (session.isOpened()) {
-				// We are now connected to Facebook (or other).
-				// Upload the facebook token to the platform.
-				if (!_webServiceBound)
-					// TODO: use resource
-					throw new AssertionError(
-							"WebApiService must be bound to MainActivity.");
-
-				// If the session state is open, we can now
-				// log into the platform.
-				try {
-					_webService.loginPlatform(session);
-					showFragment(FRAGMENT_INDEX_LOADING, false);
-				} catch (Exception ex) {
-					Log.e(TAG, ex.toString());
-					showFragment(FRAGMENT_INDEX_SPLASH, false);
-					// TODO: Use resource.
-					Toast.makeText(this.getApplicationContext(),
-							"Login failed.", Toast.LENGTH_SHORT).show();
-				}
-
-			} else if (session.isClosed()) {
-				// If the session state is closed:
-				// Show the login fragment
-				showFragment(FRAGMENT_INDEX_SPLASH, false);
-			}
-		}
-
-	}*/
 
 	// -------------------------------------------------------------------------
 	// This is the fragment-orientated version of onResume() that you can
@@ -341,72 +296,7 @@ public class MainActivity extends ActionBarActivity
 	}
 
 	// -------------------------------------------------------------------------
-	//
-	@Override
-	protected void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-		// _loginManager.onSaveInstanceState(outState);
-		_fbUiHelper.onSaveInstanceState(outState);
-	}
-
-	// -------------------------------------------------------------------------
-	//
-	/*
-	 * @Override public boolean onCreateOptionsMenu(Menu menu) { return true; }
-	 */
-
-	// -------------------------------------------------------------------------
-	//
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case android.R.id.home:
-			// Up / home button has been pressed.
-			onBackPressed();
-			return true;
-			// case R.id.
-		}
-		return super.onOptionsItemSelected(item);
-	}
-
-	// -------------------------------------------------------------------------
-	//
-	public void onClickSignIn(View v) {
-		showFragment(FRAGMENT_INDEX_SIGN_IN, true);
-	}
-
-	// -------------------------------------------------------------------------
-	//
-	public void onClickRegister(View v) {
-		showFragment(FRAGMENT_INDEX_REGISTER, true);
-	}
-
-	// -------------------------------------------------------------------------
-	//
-	public void onClickFacebookSignIn(View v) {
-		// _loginManager.facebookLogin();
-		// TODO: _webService.facebookLogin();
-		Session fbSession = Session.getActiveSession();
-		if(fbSession != null && fbSession.isOpened()) {
-			// Already logged in.  Trigger the callback to log into the platform. TODO: call _webService.facebookLogin() here directly!
-			onFacebookSessionStateChange(
-					fbSession, fbSession.getState(), null);
-		}
-		else {
-			// Open a new session (this will show the Facebook login UI).
-			Session.openActiveSession(
-					this, true, _fbSessionStatusCb);
-		}
-	}
-
-	// -------------------------------------------------------------------------
-	//
-	public void onClickFacebookRegister(View v) {
-		// TODO
-	}
-
-	// -------------------------------------------------------------------------
-	// TODO Call this
+	// TODO Call this!
 	private boolean isOnline() {
 		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(
 				Context.CONNECTIVITY_SERVICE);
@@ -439,19 +329,119 @@ public class MainActivity extends ActionBarActivity
 	}
 
 	// -------------------------------------------------------------------------
+	//
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		// _loginManager.onSaveInstanceState(outState);
+		_fbUiHelper.onSaveInstanceState(outState);
+	}
+
+	// -------------------------------------------------------------------------
+	//
+	/*
+	 * @Override public boolean onCreateOptionsMenu(Menu menu) { return true; }
+	 */
+
+	// -------------------------------------------------------------------------
+	//
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			// Up / home button has been pressed.
+			onBackPressed();
+			return true;
+		// case R.id.
+		}
+		return super.onOptionsItemSelected(item);
+	}
+
+	// -------------------------------------------------------------------------
+	//
+	public void onClickSignIn(View v) {
+		showFragment(FRAGMENT_INDEX_SIGN_IN, true);
+	}
+
+	// -------------------------------------------------------------------------
+	//
+	public void onClickRegister(View v) {
+		showFragment(FRAGMENT_INDEX_REGISTER, true);
+	}
+
+	// -------------------------------------------------------------------------
+	//
+	public void onClickLinkToFacebook(View v) {
+		// TODO move to register fragment
+		onClickFacebookSignIn(v);
+	}
+
+	// -------------------------------------------------------------------------
+	//
+	public void onClickBasicSignIn(View v) {
+		final SignInFragment f = 
+				(SignInFragment)_fragments[FRAGMENT_INDEX_SIGN_IN];
+		final String email = f.getEmail();
+		final String password = f.getPassword();
+		
+		if (!_webServiceBound) {
+			// TODO: use string resource.
+			throw new AssertionError(
+					"WebApiService must be bound to MainActivity.");
+		}
+		
+		try {
+			_webService.basicLogin(email, password);
+			showFragment(FRAGMENT_INDEX_LOADING, false);
+		} catch(Exception ex) {
+			String msg = "Login failed.";
+			Log.e(TAG, msg, ex);
+			showToast(msg);
+			showFragment(FRAGMENT_INDEX_SIGN_IN, false);
+		}
+		
+	}
+	
+	// -------------------------------------------------------------------------
+	//
+	public void onClickFacebookSignIn(View v) {
+		// TODO: _webService.facebookLogin();
+		Session fbSession = Session.getActiveSession();
+		if(fbSession != null && fbSession.isOpened()) {
+			// Already logged in.  Trigger the callback to log into the platform. 
+			// TODO: call _webService.facebookLogin() here directly!
+			onFacebookSessionStateChange(
+					fbSession, fbSession.getState(), null);
+		}
+		else {
+			// Open a new session (this will show the Facebook login UI).
+			Session.openActiveSession(
+					this, true, _fbSessionStatusCb);
+		}
+	}
+	
+	//-------------------------------------------------------------------------
+	//	
+	private void showToast(String text) {
+		Toast.makeText(this.getApplicationContext(), text,
+				Toast.LENGTH_LONG).show();
+	}
+	
+	//-------------------------------------------------------------------------
 	//	
 	@Override
 	public void onSignInStateChange(JSONObject response, Throwable exception) {
-		if(exception == null)
-			Toast.makeText(this.getApplicationContext(), "Signed in!",
-					Toast.LENGTH_LONG).show();
+		if(exception == null) {
+			// TODO: Use resource!
+			showToast("Signed in.");
 			// TODO: Launch IntermapActivity.
+		}
 		else {
-			Toast.makeText(this.getApplicationContext(), "Could not sign in!",
-					Toast.LENGTH_LONG).show();
-			
-			// Go back to Splash screen.
-			showFragment(FRAGMENT_INDEX_SPLASH, false);
+			// TODO: Use resource!
+			showToast("Could not sign in.");
+
+			// Go back to sign in screen.
+			showFragment(FRAGMENT_INDEX_SIGN_IN, false);
 		}
 	}
 }

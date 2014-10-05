@@ -1,28 +1,28 @@
 
+var Config = require('./config');
+var Data = require('./data');
 
 var https = require('https');
 var url = require('url');
 var bl = require('bl'); // https://github.com/rvagg/bl
+var crypto = require('crypto');
 
+var User = Data.User;
 
+var LOGOUT_STATUS_OK = "LOGOUT_STATUS_OK";
 var LOGIN_STATUS_OK = "LOGIN_STATUS_OK";
+var LOGIN_STATUS_INTERNAL_ERROR = "LOGIN_STATUS_INTERNAL_ERROR";
 var LOGIN_STATUS_TOKEN_ERROR = "LOGIN_STATUS_TOKEN_ERROR";
+var LOGIN_STATUS_INVALID_CREDENTIALS = "LOGIN_STATUS_INVALID_CREDENTIALS";
 var LOGIN_STATUS_UNKNOWN_CREDENTIALS = "LOGIN_STATUS_UNKNOWN_CREDENTIALS";
 
 var TAG = "LOGIN:";
-
-var FACEBOOK_APP_ID = "581376651971597";
-
-// TODO: THIS IS TEMPORARY FOR TESTING PURPOSES ONLY! 
-// The real app secret should be stored on the server in an external file or database and not committed to git.
-var FACEBOOK_APP_SECRET = "TODO";
-
 
 // The facebook app token.
 // Retrieved at start-up.
 // TODO: Refresh this token every X hours.
 fbAppToken = undefined;
-
+/*
 //-----------------------------------------------------------------------------
 // Links facebook IDs to Intermap IDs.
 var facebookIdMap = {
@@ -36,65 +36,75 @@ var facebookIdMap = {
 var users = {
 	    1: {
 	        email: 'cotegu@gmail.com',
-	        password: '123', // TODO: Use bcrypt here
+	        hashed_password: 'TODO',
+			salt: makeSalt(), // TODO: Should this really be part of the profile??
 	        name: 'Guillaume',
 	        facebook_id: 10154602565895392
 	    },
 	    2: {
 	        email: 'zemustain@msn.com',
-	        password: '123', // TODO: Use bcrypt here
+	        hashed_password: 'TODO', 
+			salt: makeSalt(),
 	        name: 'Sebastien',
 	        facebook_id: 10154499884250392
 	    }
 	};
-
-	//-----------------------------------------------------------------------------
-//
-/*
-var login = function (request, reply) {
-
-    if (request.auth.isAuthenticated) {
-    	// Already authenticated.
-    	// TODO: No redirect.
-        return reply({loginStatus : "OK"});
-    }
-
-    var message = '';
-    var account = null;
-
-    if (request.method === 'post') {
-
-        if (!request.payload.username ||
-            !request.payload.password) {
-        	// TODO: Check facebook access here.
-            message = 'Missing username or password';
-        }
-        else {
-            account = users[request.payload.username];
-            if (!account ||
-                account.password !== request.payload.password) {
-
-                message = 'Invalid username or password';
-            }
-        }
-    }
-    
-    if (request.method === 'get' ||
-        message) {
-
-        return reply('<html><head><title>Login page</title></head><body>'
-            + (message ? '<h3>' + message + '</h3><br/>' : '')
-            + '<form method="post" action="/login">'
-            + 'Username: <input type="text" name="username"><br>'
-            + 'Password: <input type="password" name="password"><br/>'
-            + '<input type="submit" value="Login"></form></body></html>');
-    }
-    
-
-    request.auth.session.set(account);
-    return reply.redirect('/');
-};
 */
+//-----------------------------------------------------------------------------
+// Create a session for the given user.
+function createSession(user) {
+	return { 
+		id : user.id,
+		email : user.email,
+		hashed_password : user.hashed_password, 
+		salt : user.salt
+	};
+}
+
+//-----------------------------------------------------------------------------
+//
+function finalizeLoginRequest(request, user) {
+	// Set session cookie and send response.		
+	// TODO: Check expiration value?
+	// TODO: Save session into redis?
+	var session = createSession(user);
+	request.auth.session.set(session);
+	User.onPostLogin(
+		user._id, 
+		request.info.remoteAddress
+	);	
+	console.log("User logged in:", user);
+}
+
+//-----------------------------------------------------------------------------
+//
+function makeSalt() {
+	return Math.round((new Date().valueOf() * Math.random())) + '';
+}
+exports.makeSalt = makeSalt;
+
+//-----------------------------------------------------------------------------
+//
+function checkPassword(user, plainText) {
+    return hashPassword(user.salt, plainText) === user.hashed_password;
+}
+exports.checkPassword = checkPassword;
+
+//-----------------------------------------------------------------------------
+//
+function hashPassword(salt, password) {
+    if (!password) 
+		return '';
+    try {
+		return crypto
+			.createHmac('sha1', salt)
+			.update(password)
+			.digest('hex');
+    } catch (err) {
+      return '';
+    }
+}
+exports.hashPassword = hashPassword;
 
 //-----------------------------------------------------------------------------
 //
@@ -104,8 +114,8 @@ var login = function (request, reply) {
 function getFacebookAppToken(callback) {
 	var fbUrl = url.parse("https://graph.facebook.com/oauth/access_token");
 	fbUrl.query = {};
-	fbUrl.query.client_id = FACEBOOK_APP_ID;
-	fbUrl.query.client_secret = FACEBOOK_APP_SECRET;
+	fbUrl.query.client_id = Config.facebook.app_id;
+	fbUrl.query.client_secret = Config.facebook.app_secret;
 	fbUrl.query.grant_type = "client_credentials";
 	var strFbUrl = url.format(fbUrl);
 	
@@ -174,7 +184,7 @@ function checkFacebookUserToken(userToken, callback) {
   
 //-----------------------------------------------------------------------------
 //
-var facebookLoginRouteConfig = {
+var loginRouteConfig = {
 	payload : {
 		output: 'data',
 		parse: true,
@@ -195,19 +205,87 @@ var facebookLoginRouteConfig = {
 //
 var logoutHandler = function (request, reply) {
 	// TODO: Check if user is logged in / known.
-     request.auth.session.clear();
-     return reply({logoutStatus : "OK"});
+    request.auth.session.clear();
+    return reply({logoutStatus : LOGOUT_STATUS_OK});
 };
  
 //-----------------------------------------------------------------------------
 //
  var testHandler = function (request, reply) {
-	 reply({hello:"Hello " + request.auth.credentials.name});
+	reply({hello:"Hello " + request.auth.credentials.email});
+};
+  
+//-----------------------------------------------------------------------------
+//
+var basicLoginHandler = function (request, reply) {
+
+    if (request.auth.isAuthenticated) {
+    	// Already authenticated.
+		User.onPostLogin(
+			request.auth.credentials.id, 
+			request.info.remoteAddress);
+		
+		console.log("User logged in with cookie:", 
+			request.auth.credentials.email);
+        return reply({loginStatus : LOGIN_STATUS_OK});
+    }
+	
+	var email = request.payload.email;
+	var password = request.payload.password;
+	
+    if (!(email && password)) {
+		// The email and password must not be null.
+        return reply({loginStatus: LOGIN_STATUS_INVALID_CREDENTIALS}).code(401);
+    }
+    else {
+		// Find user account in database by email address.
+		var response = reply({loginStatus : LOGIN_STATUS_OK}).hold(); 
+		
+		User.findOne({ email: email }).exec(function (err, user) {
+			if(err) {
+				console.error(err);
+				response.source = { 
+					loginStatus : LOGIN_STATUS_INTERNAL_ERROR
+				};
+				response.statusCode = 500;
+				return response.send();
+			}
+			else if(user === null || 
+				!checkPassword(user, password)) {
+				// TODO: Log this error properly.
+				response.source = { 
+					loginStatus : LOGIN_STATUS_UNKNOWN_CREDENTIALS
+				};
+				response.statusCode = 401;
+				return response.send();
+			}
+		
+			// User successfully authenticated.
+			// Set session cookie and send response.
+			finalizeLoginRequest(request, user);
+			return response.send();
+		});
+    }
 };
  
 //-----------------------------------------------------------------------------
 //
  function facebookLoginHandler(request, reply) { 
+ 
+	// TODO: Add some extra security / flood protection.
+	// TODO: Cache repeated responses if we already know the request?
+    if (request.auth.isAuthenticated) {
+    	// Already authenticated.
+		console.log("Credentials", request.auth.credentials);
+		User.onPostLogin(
+			request.auth.credentials.id, 
+			request.info.remoteAddress);
+			
+		console.log("User logged in with cookie:", 
+			request.auth.credentials.email);
+        return reply({loginStatus : LOGIN_STATUS_OK});
+    }
+ 
 	if(!request.payload.hasOwnProperty('access_token')) {
 		// TODO: Properly log errors with IP addresses and all.
 		// TODO: Verifying Graph API Calls with appsecret_proof
@@ -215,17 +293,9 @@ var logoutHandler = function (request, reply) {
 		console.error(err);
 		return reply(err).code(401);
 	}
-	
-	// TODO: request.payload.accessmethod (fb, etc)
-	// Validate access token
-	
-	// TODO: Check if token is known.
-	// Try to put this in cookie?
-		
-	// TODO: Return user information as response.
-		
+
 	// http://hapijs.com/api/v6.0.2#response-object
-	var response = reply({loginStatus : "OK"}).hold(); 
+	var response = reply({loginStatus : LOGIN_STATUS_OK}).hold(); 
 	checkFacebookUserToken(request.payload.access_token, function(err, data) { 
 		if(err) {
 			console.error(err);
@@ -240,7 +310,7 @@ var logoutHandler = function (request, reply) {
 		data = data.data;
 		
 		// Check that the token is valid and for our app.
-		if(!data.is_valid || data.app_id != FACEBOOK_APP_ID) {
+		if(!data.is_valid || data.app_id != Config.facebook.app_id) {
 			console.error(data);
 			response.source = {
 				loginStatus : LOGIN_STATUS_TOKEN_ERROR, 
@@ -250,36 +320,32 @@ var logoutHandler = function (request, reply) {
 			return response.send();
 		}
 		
-		// Now, check that the token is for a known user.
-		var account = null;
-		var fbUserId = data.user_id;
-		if( fbUserId && !isNaN(fbUserId) ) {
-			fbUserId = parseInt(fbUserId);
-			var uid = facebookIdMap[fbUserId];
-			if(uid) {
-				account = users[uid];
+		// Now, check that the token is from a known user.
+		// Find user account in database by facebook_id (facebook user id).
+		User.findOne({ facebook_id: data.user_id }).exec(function (err, user) {
+			if(err) {
+				// TODO: handleError() function.
+				console.error(err);
+				response.source = { 
+					loginStatus : LOGIN_STATUS_INTERNAL_ERROR, 
+					"error" : "Could not check user token."
+				};
+				response.statusCode = 500;
+				return response.send();
 			}
-		}
-		
-		if(!account) {
-			console.error("Unknown user_id:\n");
-			console.error(data);
-			response.source = {
-				loginStatus : LOGIN_STATUS_UNKNOWN_CREDENTIALS, 
-				"error" : "Unknown credentials."
-			};
-			response.statusCode = 401;
-			return response.send();
-		} 
-		
-		// TODO : Check expiration value?
-		// TODO :  Check user ID
-	    request.auth.session.set(account);
-
-
-		// Token is valid.
-		// TODO: Save session into redis?
-		response.send();
+			else if(user === null) {
+				// TODO: Log this error properly.
+				response.source = { 
+					loginStatus : LOGIN_STATUS_UNKNOWN_CREDENTIALS
+				};
+				response.statusCode = 401;
+				return response.send();
+			}
+			
+			// User successfully authenticated.
+			finalizeLoginRequest(request, user);	
+			return response.send();			
+		});
 	});
 }
 
@@ -292,10 +358,11 @@ var logoutHandler = function (request, reply) {
 exports.init = function (server, callback) {
 
     server.auth.strategy('session', 'cookie', {
-        password: 'secret', // used for Iron cookie encoding.
+        password: 'secret', // used for Iron cookie encoding. TODO: Change this password!  Should be in the DB.
         cookie: 'sid', // the cookie name. Defaults to 'sid'.
         //redirectTo: false, 
-        isSecure: false // if false, the cookie is allowed to be transmitted over insecure connections which exposes it to attacks. Defaults to true.
+		clearInvalid: true, //  if true, any authentication cookie that fails validation will be marked as expired in the response and cleared. Defaults to false.
+        isSecure: false // if false, the cookie is allowed to be transmitted over insecure connections which exposes it to attacks. Defaults to true. TODO: Set this to true!
         // TODO: isSecure should be true!
     });
     
@@ -312,11 +379,17 @@ exports.init = function (server, callback) {
 	     }
 	});
 	
+	server.route({
+	  	path: '/login',
+	  	method: 'POST',
+	  	config: loginRouteConfig,
+	  	handler: basicLoginHandler
+	});
 	
 	server.route({
 	  	path: '/login/facebook',
 	  	method: 'POST',
-	  	config: facebookLoginRouteConfig,
+	  	config: loginRouteConfig,
 	  	handler: facebookLoginHandler
 	});
 	

@@ -13,6 +13,8 @@
     "async": "^0.9.0",
     "bl": "^0.9.3",
     "hapi": "^6.8.1",
+    "hapi-auth-cookie": "^1.3.2",
+    "mongoose": "^3.8.17",
     "node-rest-client": "^1.0.0"
   }
 }

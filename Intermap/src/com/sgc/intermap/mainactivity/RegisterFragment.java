@@ -17,7 +17,7 @@ public class RegisterFragment extends Fragment {
 
 	private static final String TAG = "RegisterFragment";
 	
-	private Button _fbRegisterButton;
+	private Button _fbLinkButton;
 
 	//-------------------------------------------------------------------------
 	//
@@ -31,8 +31,8 @@ public class RegisterFragment extends Fragment {
 				container, false);	   
 
 		setHasOptionsMenu(true);
-		_fbRegisterButton = (Button)view.findViewById(R.id.btnFacebookRegister);
-		FacebookHelper.setFacebookButtonStyle(this.getActivity(), _fbRegisterButton);
+		_fbLinkButton = (Button)view.findViewById(R.id.btnLinkToFacebook);
+		FacebookHelper.setFacebookButtonStyle(this.getActivity(), _fbLinkButton);
 		
 		return view;
 	}
@@ -58,6 +58,12 @@ public class RegisterFragment extends Fragment {
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 	    inflater.inflate(R.menu.menu_fragment_register, menu);
 	    super.onCreateOptionsMenu(menu, inflater);
+	}
+
+	//-------------------------------------------------------------------------
+	//
+	public Button getLinkToFacebookButton() {
+		return _fbLinkButton;
 	}
 
 
